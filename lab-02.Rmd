@@ -17,20 +17,16 @@ library(readxl)
 
 ```{r load-data, message = FALSE}
 # Member 2 (pair 1) write code to load File 1 data here:
-
-
+data1 <- read_csv("data/mismanaged-plastic-waste-per-capita.csv")
 
 # Member 4 (pair 2) write code to load File 2 data here:
-
-
+data2 <- read_csv2("data/per-capita-ocean-plastic-waste.txt")
 
 # Member 6 (pair 3) write code to load File 3 data here:
-
-
+data3 <- read_tsv("data/UN_country_population.tsv")
 
 # Member 1 (pair 1) write code to load File 4 data here:
-
-
+data4 <- read_excel("data/UN_country_region.xlsx")
 
 ```
 
@@ -38,24 +34,22 @@ library(readxl)
 
 ```{r join-data, message = FALSE}
 # Member 2 (pair 1) write code to create object 'plastic_data_all':
-
-
-
+plastic_data_all <- data1
 
 # Member 4 (pair 2) write code to join your data to 'plastic_data_all':
-
-
-
+plastic_data_all <- data2 %>%
+  select(-name) %>%
+  left_join(plastic_data_all, by = "code")
 
 # Member 6 (pair 3) write code to join your data to 'plastic_data_all':
-
-
-
+plastic_data_all <- data3 %>%
+  select(-name) %>%
+  right_join(plastic_data_all, by = "code")
 
 # Member 1 (pair 1) write code to join your data to 'plastic_data_all':
-
-
-
+plastic_data_all <- data4 %>%
+  select(-name) %>%
+  right_join(plastic_data_all, by = "code")
 ```
 
 
@@ -74,7 +68,9 @@ library(readxl)
 
 ```{r Ex1, message = FALSE}
 # Write your code here to answer exercise 1
-
+# Write your code here to answer exercise 1
+plastic_data_all %>% 
+  count(region)%>%arrange(n)
 
 
 ```
@@ -86,8 +82,12 @@ library(readxl)
 ```{r Ex2, message = FALSE}
 # Write your code here to answer exercise 2
 
+plastic_data_all <- plastic_data_all %>%
+  mutate(total_mismanaged_plastic = mismanaged_plastic * population)
 
-
+plastic_data_all %>% 
+  group_by(region) %>%
+  summarise(avg_total = mean(total_mismanaged_plastic))
 ```
 
 
@@ -96,16 +96,38 @@ library(readxl)
 ```{r Ex3, message = FALSE}
 # Write your code here to answer exercise 3
 
+# Write your code here to answer exercise 3
+plastic_data_all <- plastic_data_all %>%
+  mutate(pct_mismanaged_plastic_ocean = mismanaged_plastic_ocean / mismanaged_plastic)
 
+plastic_data_all %>% 
+  group_by(region) %>%
+  summarise(med_pct = median(pct_mismanaged_plastic_ocean))
+plastic_data_all %>% filter(code == "SOM")
 
+plastic_data_all %>% 
+  drop_na() %>%
+  group_by(region) %>%
+  summarise(med_pct = median(pct_mismanaged_plastic_ocean)) %>%
+  arrange(med_pct)
 ```
 
 
 ### Ex 4.
 
 ```{r Ex4, message = FALSE}
-# Write your code here to answer exercise 4
+plastic_data_all <- plastic_data_all %>%
+  rename(
+    pop = population,
+    ocean_plastic = mismanaged_plastic_ocean,
+    mismanaged = mismanaged_plastic,
+    tot_plastic = total_mismanaged_plastic,
+    pct_ocean = pct_mismanaged_plastic_ocean
+  )
 
 
-
+plastic_data_all <- plastic_data_all %>%
+  mutate(region = str_replace_all(region, "Latin America and The Caribbean", "LAC"))
+plastic_data_all$region%>%recode("Latin America and The Caribbean"="LAC")
+plastic_data_all %>% head(n = 10)
 ```
